@@ -35,6 +35,7 @@ class AuthService {
           if (currentUser.fcmToken != fcmToken) {
             final updatedUser = currentUser.copyWith(fcmToken: fcmToken);
             await userService.updateUser(updatedUser);
+            print("-------------------------------Se actualizo el fmcToken a: ${currentUser.fcmToken}");
           }
         }
       }

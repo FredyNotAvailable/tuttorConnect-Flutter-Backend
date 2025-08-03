@@ -5,6 +5,16 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const fs = require("fs");
 
+// Agregamos polyfill de fetch y Headers con node-fetch
+const fetch = require("node-fetch");
+
+if (!globalThis.fetch) {
+  globalThis.fetch = fetch;
+  globalThis.Headers = fetch.Headers;
+  globalThis.Request = fetch.Request;
+  globalThis.Response = fetch.Response;
+}
+
 const SERVICE_ACCOUNT_JSON = process.env.SERVICE_ACCOUNT_JSON;
 const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "tutorconnect-b1cb4";
 
@@ -12,6 +22,11 @@ const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "tutorconnect-b1cb4";
 let serviceAccount;
 if (SERVICE_ACCOUNT_JSON) {
   serviceAccount = JSON.parse(SERVICE_ACCOUNT_JSON);
+
+  // Reemplazar los '\\n' literales por saltos de línea reales en private_key
+  if (serviceAccount.private_key) {
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+  }
 } else {
   const SERVICE_ACCOUNT_PATH = "./serviceAccountKey.json"; // Esto se utilizaría en local, asegúrate de no subirlo a git.
   serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, "utf8"));
@@ -82,8 +97,8 @@ app.post("/send-tutoring-notification", async (req, res) => {
 
     return res.json({
       results,
-      successCount: results.filter(r => r.success).length,
-      failureCount: results.filter(r => !r.success).length,
+      successCount: results.filter((r) => r.success).length,
+      failureCount: results.filter((r) => !r.success).length,
     });
   } catch (error) {
     console.error("❌ Error general:", error);

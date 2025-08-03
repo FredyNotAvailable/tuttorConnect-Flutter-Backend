@@ -57,6 +57,7 @@ app.post("/send-tutoring-notification", async (req, res) => {
           data: {
             tutoringId,
             click_action: "FLUTTER_NOTIFICATION_CLICK",
+            screen: "home",
           },
         },
       };

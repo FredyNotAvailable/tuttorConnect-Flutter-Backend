@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_messaging/firebase_messaging.dart'; // Asegúrate de importar esto
 import 'package:tutorconnect/firebase/push_notification_service.dart';
 import 'routes/app_routes.dart';
 import 'firebase/firebase_initializer.dart';
@@ -24,11 +25,30 @@ void main() async {
   );
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Listener cuando se abre la app desde una notificación
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      // Navegar a Home y eliminar historial para evitar volver atrás
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        AppRoutes.home,
+        (route) => false,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final firebaseConnectedAsync = ref.watch(firebaseConnectedProvider);
 
     return firebaseConnectedAsync.when(
@@ -49,11 +69,9 @@ class MyApp extends ConsumerWidget {
           navigatorKey: navigatorKey,
           title: 'TutorConnect',
           debugShowCheckedModeBanner: false,
-          // eliminamos initialRoute y onGenerateRoute para delegar a AuthGate
           home: const AuthGate(),
           onGenerateRoute: AppRoutes.generateRoute,
           theme: ThemeData(
-            // Definimos un tema claro con texto negro por defecto
             brightness: Brightness.light,
             appBarTheme: const AppBarTheme(
               backgroundColor: Colors.white,

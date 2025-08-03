@@ -6,16 +6,12 @@ const cors = require("cors");
 const fs = require("fs");
 
 const SERVICE_ACCOUNT_JSON = process.env.SERVICE_ACCOUNT_JSON;
+const SERVICE_ACCOUNT_PATH = "./serviceAccountKey.json";
 const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "tutorconnect-b1cb4";
 
-// Si no existe el JSON en las variables de entorno, usa el archivo de configuración (pero lo ideal es que se use la variable de entorno en producción)
-let serviceAccount;
-if (SERVICE_ACCOUNT_JSON) {
-  serviceAccount = JSON.parse(SERVICE_ACCOUNT_JSON);
-} else {
-  const SERVICE_ACCOUNT_PATH = "./serviceAccountKey.json"; // Esto se utilizaría en local, asegúrate de no subirlo a git.
-  serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, "utf8"));
-}
+const serviceAccount = JSON.parse(
+  SERVICE_ACCOUNT_JSON || fs.readFileSync(SERVICE_ACCOUNT_PATH, "utf8")
+);
 
 const app = express();
 const port = process.env.PORT || 3000;

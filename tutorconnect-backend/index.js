@@ -24,6 +24,12 @@ async function init() {
     globalThis.Blob = Blob;
   }
 
+  // Agregar FormData en el entorno de Node.js
+  const FormData = require("form-data");
+  if (!globalThis.FormData) {
+    globalThis.FormData = FormData;
+  }
+
   const SERVICE_ACCOUNT_JSON = process.env.SERVICE_ACCOUNT_JSON;
   const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "tutorconnect-b1cb4";
 

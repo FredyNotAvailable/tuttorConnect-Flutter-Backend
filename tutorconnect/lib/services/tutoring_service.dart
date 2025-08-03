@@ -52,7 +52,9 @@ Future<Tutoring> addTutoring(Tutoring tutoring) async {
   print('🔹 Tokens FCM obtenidos: ${studentTokens.length} tokens');
 
   if (studentTokens.isNotEmpty) {
-    final apiUrl = Uri.parse('http://10.0.2.2:3000/send-tutoring-notification'); // Cambia si usas otro host
+    // final apiUrl = Uri.parse('http://10.0.2.2:3000/send-tutoring-notification'); // Cambia si usas otro host
+    final apiUrl = Uri.parse('https://tuttorconnect-flutter-backend.onrender.com/send-tutoring-notification');
+
 
     final body = jsonEncode({
       'tokens': studentTokens,

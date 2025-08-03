@@ -7,18 +7,19 @@ enum TutoringStatus {
 }
 
 class Tutoring {
-  final String id;               // ID único de la tutoría
-  final String classroomId;      // ID del aula donde se realizará la tutoría
-  final DateTime createdAt;      // Fecha y hora en que se creó la tutoría
-  final DateTime date;           // Fecha de la tutoría
-  final String startTime;        // Hora de inicio (formato "HH:mm")
-  final String endTime;          // Hora de fin (formato "HH:mm")
-  final String notes;            // Notas o comentarios adicionales sobre la tutoría
-  final TutoringStatus status;   // Estado de la tutoría (activo, finalizada, cancelada)
-  final List<String> tutoringRequestIds; // Lista de IDs de los tutoringRequestIds inscritos o invitados
-  final String subjectId;        // ID de la materia o asignatura
-  final String teacherId;        // ID del docente que imparte la tutoría
-  final String topic;            // Tema o asunto que se tratará en la tutoría
+  final String id;               
+  final String classroomId;      
+  final DateTime createdAt;      
+  final DateTime date;           
+  final String startTime;        
+  final String endTime;          
+  final String notes;            
+  final TutoringStatus status;   
+  final List<String> tutoringRequestIds; 
+  final String subjectId;        
+  final String teacherId;        
+  final String topic;            
+  final List<String> studentIds;    // <-- agregado
 
   Tutoring({
     required this.id,
@@ -33,6 +34,7 @@ class Tutoring {
     required this.subjectId,
     required this.teacherId,
     required this.topic,
+    required this.studentIds,        // <-- agregado
   });
 
   factory Tutoring.fromMap(Map<String, dynamic> map, String documentId) {
@@ -49,6 +51,7 @@ class Tutoring {
       subjectId: map['subjectId'] ?? '',
       teacherId: map['teacherId'] ?? '',
       topic: map['topic'] ?? '',
+      studentIds: List<String>.from(map['studentIds'] ?? []),   // <-- agregado
     );
   }
 
@@ -65,6 +68,7 @@ class Tutoring {
       'subjectId': subjectId,
       'teacherId': teacherId,
       'topic': topic,
+      'studentIds': studentIds,           // <-- agregado
     };
   }
 
@@ -98,6 +102,7 @@ class Tutoring {
     String? subjectId,
     String? teacherId,
     String? topic,
+    List<String>? studentIds,            // <-- agregado
   }) {
     return Tutoring(
       id: id ?? this.id,
@@ -112,6 +117,7 @@ class Tutoring {
       subjectId: subjectId ?? this.subjectId,
       teacherId: teacherId ?? this.teacherId,
       topic: topic ?? this.topic,
+      studentIds: studentIds ?? this.studentIds,    // <-- agregado
     );
   }
 }

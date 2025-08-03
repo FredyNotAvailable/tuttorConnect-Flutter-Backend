@@ -162,6 +162,7 @@ class _CrearTutoriaScreenState extends ConsumerState<CrearTutoriaScreen> {
       subjectId: _selectedSubjectId!,
       teacherId: _teacherId!,
       topic: _topicController.text.trim(),
+      studentIds: _studentIds
     );
 
     try {

@@ -1,0 +1,32 @@
+1. users: Guarda la información de usuarios: estudiantes y docentes, incluyendo roles y tokens para notificaciones. ✅
+
+2. careers: Listado de carreras académicas disponibles en la universidad. ✅
+ 
+3. subjects: Registro de las materias ofrecidas. ✅
+
+4. curriculums: Mallas curriculares que organizan las materias por carrera y ciclo académico. ✅
+
+5. enrollments: Datos generales de matrícula de estudiantes: carrera, ciclo, estado activo. ✅
+
+6. subject_enrollments: Registro específico de las materias en las que un estudiante está inscrito en un periodo académico. ✅
+
+7. tutorings: Información de las tutorías creadas por los docentes: materia, aula, fecha, horario, tema, estudiantes inscritos y estado. ✅
+
+8. tutoring_requests: Solicitudes enviadas a estudiantes para que confirmen su participación en una tutoría. ✅
+
+9. tutoring_attendance: Registro detallado de asistencia de estudiantes a cada tutoría. ✅
+
+10. notifications: Notificaciones enviadas a usuarios relacionadas con tutorías o avisos generales. ✅
+
+11. class_schedules: Horarios de clases o tutorías programadas, con fechas, horas y aulas. ✅
+
+12. classrooms: Información de las aulas o salones físicos disponibles. ✅
+
+13. teacher_plans: Planes que los docentes crean para registrar las materias que impartirán por carrera y ciclo, funcionando como una inscripción docente. ✅
+
+
+flutter clean
+flutter pub get
+clear
+flutter run
+

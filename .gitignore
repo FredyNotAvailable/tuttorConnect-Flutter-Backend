@@ -1,0 +1,29 @@
+# Flutter - tutorconnect/
+tutorconnect/build/
+tutorconnect/.dart_tool/
+tutorconnect/.flutter-plugins
+tutorconnect/.flutter-plugins-dependencies
+tutorconnect/.pub-cache/
+tutorconnect/.pub/
+tutorconnect/*.iml
+tutorconnect/.idea/
+tutorconnect/.vscode/
+tutorconnect/*.log
+tutorconnect/*.class
+tutorconnect/*.pyc
+tutorconnect/.DS_Store
+
+# Node.js backend - tutorconnectbackend/
+tutorconnect-backend/node_modules/
+tutorconnect-backend/serviceAccountKey.json
+tutorconnect-backend/.env
+tutorconnect-backend/*.log
+tutorconnect-backend/.DS_Store
+
+# General
+*.log
+*.lock
+*.tmp
+.DS_Store
+.idea/
+.vscode/

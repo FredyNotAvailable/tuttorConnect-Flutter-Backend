@@ -5,8 +5,8 @@ import 'package:tutorconnect/models/user.dart';
 import 'package:tutorconnect/screens/home_screen.dart';
 import 'package:tutorconnect/screens/profile_screen.dart';
 import 'package:tutorconnect/screens/subject_details_screen.dart';
+import 'package:tutorconnect/screens/teacher/crear_tutoria_screen.dart';
 import 'package:tutorconnect/screens/tutoring_detail_screen.dart';
-import 'package:tutorconnect/widgets/teacher/crear_tutoria_screen.dart';
 import '../screens/login_screen.dart';
 
 // Importa aquí otras pantallas cuando las tengas

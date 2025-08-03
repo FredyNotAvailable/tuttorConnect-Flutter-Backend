@@ -228,259 +228,237 @@ class _CrearTutoriaScreenState extends ConsumerState<CrearTutoriaScreen> {
     .where((subject) => _availableSubjects.contains(subject.id))
     .toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Crear Tutoría'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // Barra simple con botón atrás
-              Row(
+///
+///
+
+return Scaffold(
+  appBar: AppBar(
+    title: const Text('Crear Tutoría'),
+  ),
+  body: SingleChildScrollView(
+    padding: const EdgeInsets.all(16),
+    child: Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Barra simple con botón atrás
+          const SizedBox(height: 16),
+
+          // Tema
+          TextFormField(
+            controller: _topicController,
+            decoration: const InputDecoration(labelText: 'Tema'),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'El tema es obligatorio';
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 12),
+
+          // Notas
+          TextFormField(
+            controller: _notesController,
+            decoration: const InputDecoration(labelText: 'Notas (opcional)'),
+            minLines: 1,
+            maxLines: 5,
+            keyboardType: TextInputType.multiline,
+          ),
+
+          const SizedBox(height: 12),
+
+          // Dropdown Carrera
+          DropdownButtonFormField<String>(
+            decoration: const InputDecoration(labelText: 'Carrera'),
+            items: teacherPlans.isEmpty
+                ? [
+                    const DropdownMenuItem(value: null, child: Text('No hay carreras disponibles')),
+                  ]
+                : teacherPlans
+                    .map((plan) => plan.careerId)
+                    .toSet()
+                    .map((careerId) {
+                      final careerName = careers.firstWhere(
+                        (career) => career.id == careerId,
+                        orElse: () => Career(id: '', name: careerId),
+                      ).name;
+                      return DropdownMenuItem(
+                        value: careerId,
+                        child: Text(careerName),
+                      );
+                    }).toList(),
+            value: _selectedCareerId,
+            onChanged: (value) => _onCareerChanged(value, teacherPlans),
+            validator: (value) => value == null ? 'Selecciona una carrera' : null,
+          ),
+
+          const SizedBox(height: 12),
+
+          // Dropdown Ciclo
+          DropdownButtonFormField<int>(
+            decoration: const InputDecoration(labelText: 'Ciclo'),
+            items: _availableCycles.isEmpty
+                ? [
+                    const DropdownMenuItem(value: null, child: Text('Selecciona carrera primero')),
+                  ]
+                : _availableCycles
+                    .map((cycle) => DropdownMenuItem(
+                          value: cycle,
+                          child: Text('Ciclo $cycle'),
+                        ))
+                    .toList(),
+            value: _selectedCycle,
+            onChanged: _availableCycles.isEmpty ? null : (value) => _onCycleChanged(value, teacherPlans),
+            validator: (value) => value == null ? 'Selecciona un ciclo' : null,
+          ),
+
+          const SizedBox(height: 12),
+
+          // Dropdown Materia
+          DropdownButtonFormField<String>(
+            decoration: const InputDecoration(labelText: 'Materia'),
+            items: availableSubjectsObjects.isEmpty
+                ? [
+                    const DropdownMenuItem(value: null, child: Text('Selecciona ciclo primero')),
+                  ]
+                : availableSubjectsObjects
+                    .map((subject) => DropdownMenuItem(
+                          value: subject.id,
+                          child: Text(subject.name),
+                        ))
+                    .toList(),
+            value: _selectedSubjectId,
+            onChanged: availableSubjectsObjects.isEmpty
+                ? null
+                : (value) {
+                    setState(() {
+                      _selectedSubjectId = value;
+                    });
+                  },
+            validator: (value) => value == null ? 'Selecciona una materia' : null,
+          ),
+
+          const SizedBox(height: 12),
+
+          Builder(
+            builder: (context) {
+              if (_selectedSubjectId == null) {
+                _studentIds = [];
+                return const SizedBox();
+              }
+
+              final inProgressEnrollments = inProgress.where((e) => e.subjectId == _selectedSubjectId).toList();
+
+              if (inProgressEnrollments.isEmpty) {
+                _studentIds = [];
+                return const Text('No hay estudiantes inscritos con estado "En progreso" para esta materia.');
+              }
+
+              final allUsers = ref.watch(userProvider);
+              final estudiantes = allUsers.where((u) =>
+                  u.role == UserRole.student &&
+                  inProgressEnrollments.any((enrollment) => enrollment.studentId == u.id)).toList();
+
+              _studentIds = estudiantes.map((e) => e.id).toList();
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
                   const Text(
-                    'Crear Tutoría',
-                    style: TextStyle(fontSize: 20),
+                    'Estudiantes inscritos (En progreso):',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 8),
+                  ...estudiantes.map((e) => ListTile(
+                        title: Text(e.fullname),
+                        subtitle: Text(e.email),
+                        leading: const Icon(Icons.person_outline),
+                      )),
+                  const SizedBox(height: 12),
                 ],
-              ),
+              );
+            },
+          ),
 
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        // Tema
-                        TextFormField(
-                          controller: _topicController,
-                          decoration: const InputDecoration(labelText: 'Tema'),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'El tema es obligatorio';
-                            }
-                            return null;
-                          },
-                        ),
+          // Selector Aula dinámico
+          DropdownButtonFormField<String>(
+            decoration: const InputDecoration(labelText: 'Aula'),
+            items: classrooms.isEmpty
+                ? [
+                    const DropdownMenuItem(
+                      value: null,
+                      child: Text('No hay aulas disponibles'),
+                    )
+                  ]
+                : classrooms
+                    .map(
+                      (aula) => DropdownMenuItem(
+                        value: aula.id,
+                        child: Text('${aula.name} - ${aula.type.name}'),
+                      ),
+                    )
+                    .toList(),
+            onChanged: classrooms.isEmpty ? null : (value) => setState(() => _classroomId = value),
+            value: classrooms.any((a) => a.id == _classroomId) ? _classroomId : null,
+            validator: (value) => value == null ? 'Selecciona un aula' : null,
+          ),
 
-                        const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-                        // Notas
-                        TextFormField(
-                          controller: _notesController,
-                          decoration: const InputDecoration(labelText: 'Notas (opcional)'),
-                          minLines: 1,
-                          maxLines: 5,
-                          keyboardType: TextInputType.multiline,
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Dropdown Carrera
-                        DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(labelText: 'Carrera'),
-                          items: teacherPlans.isEmpty
-                              ? [
-                                  const DropdownMenuItem(value: null, child: Text('No hay carreras disponibles')),
-                                ]
-                              : teacherPlans
-                                  .map((plan) => plan.careerId)
-                                  .toSet()
-                                  .map((careerId) {
-                                    final careerName = careers.firstWhere(
-                                      (career) => career.id == careerId,
-                                      orElse: () => Career(id: '', name: careerId), // fallback por si no encuentra
-                                    ).name;
-                                    return DropdownMenuItem(
-                                      value: careerId,
-                                      child: Text(careerName),
-                                    );
-                                  }).toList(),
-                          value: _selectedCareerId,
-                          onChanged: (value) => _onCareerChanged(value, teacherPlans),
-                          validator: (value) => value == null ? 'Selecciona una carrera' : null,
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Dropdown Ciclo
-                        DropdownButtonFormField<int>(
-                          decoration: const InputDecoration(labelText: 'Ciclo'),
-                          items: _availableCycles.isEmpty
-                              ? [
-                                  const DropdownMenuItem(value: null, child: Text('Selecciona carrera primero')),
-                                ]
-                              : _availableCycles
-                                  .map((cycle) => DropdownMenuItem(
-                                        value: cycle,
-                                        child: Text('Ciclo $cycle'),
-                                      ))
-                                  .toList(),
-                          value: _selectedCycle,
-                          onChanged: _availableCycles.isEmpty ? null : (value) => _onCycleChanged(value, teacherPlans),
-                          validator: (value) => value == null ? 'Selecciona un ciclo' : null,
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Dropdown Materia
-                        DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(labelText: 'Materia'),
-                          items: availableSubjectsObjects.isEmpty
-                              ? [
-                                  const DropdownMenuItem(value: null, child: Text('Selecciona ciclo primero')),
-                                ]
-                              : availableSubjectsObjects.map((subject) => DropdownMenuItem(
-                                    value: subject.id,
-                                    child: Text(subject.name),
-                                  )).toList(),
-                          value: _selectedSubjectId,
-                          onChanged: availableSubjectsObjects.isEmpty
-                            ? null
-                            : (value) {
-                                setState(() {
-                                  _selectedSubjectId = value;
-                                });
-                              },
-                          validator: (value) => value == null ? 'Selecciona una materia' : null,
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        Builder(
-                          builder: (context) {
-                            if (_selectedSubjectId == null) {
-                              _studentIds = [];
-                              return const SizedBox();
-                            }
-
-                            final inProgressEnrollments = inProgress.where((e) => e.subjectId == _selectedSubjectId).toList();
-
-                            if (inProgressEnrollments.isEmpty) {
-                              _studentIds = [];
-                              return const Text('No hay estudiantes inscritos con estado "En progreso" para esta materia.');
-                            }
-
-                            final allUsers = ref.watch(userProvider);
-                            final estudiantes = allUsers.where((u) =>
-                              u.role == UserRole.student &&
-                              inProgressEnrollments.any((enrollment) => enrollment.studentId == u.id)
-                            ).toList();
-
-                            // *** Aquí es el lugar correcto para asignar la lista de IDs ***
-                            _studentIds = estudiantes.map((e) => e.id).toList();
-
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Estudiantes inscritos (En progreso):',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 8),
-                                ...estudiantes.map((e) => ListTile(
-                                      title: Text(e.fullname),
-                                      subtitle: Text(e.email),
-                                      leading: const Icon(Icons.person_outline),
-                                    )),
-                                const SizedBox(height: 12),
-                              ],
-                            );
-                          },
-                        ),
-
-
-
-                        // Selector Aula dinámico
-                        DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(labelText: 'Aula'),
-                          items: classrooms.isEmpty
-                              ? [
-                                  const DropdownMenuItem(
-                                    value: null,
-                                    child: Text('No hay aulas disponibles'),
-                                  )
-                                ]
-                              : classrooms
-                                  .map(
-                                    (aula) => DropdownMenuItem(
-                                      value: aula.id,
-                                      child: Text('${aula.name} - ${aula.type.name}'),
-                                    ),
-                                  )
-                                  .toList(),
-                          onChanged: classrooms.isEmpty ? null : (value) => setState(() => _classroomId = value),
-                          value: classrooms.any((a) => a.id == _classroomId) ? _classroomId : null,
-                          validator: (value) => value == null ? 'Selecciona un aula' : null,
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Fecha
-                        Row(
-                          children: [
-                            const Text('Fecha: '),
-                            TextButton(
-                              onPressed: _pickDate,
-                              child: Text(_selectedDate == null
-                                  ? 'Seleccionar fecha'
-                                  : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'),
-                            ),
-                          ],
-                        ),
-
-                        // Hora inicio
-                        Row(
-                          children: [
-                            const Text('Hora inicio: '),
-                            TextButton(
-                              onPressed: () => _pickTime(isStart: true),
-                              child: Text(_startTime == null ? 'Seleccionar hora' : _startTime!.format(context)),
-                            ),
-                          ],
-                        ),
-
-                        // Hora fin
-                        Row(
-                          children: [
-                            const Text('Hora fin: '),
-                            TextButton(
-                              onPressed: () => _pickTime(isStart: false),
-                              child: Text(_endTime == null ? 'Seleccionar hora' : _endTime!.format(context)),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        ElevatedButton(
-                          onPressed: _isSubmitting ? null : _submit,
-                          child: _isSubmitting
-                              ? const CircularProgressIndicator()
-                              : const Text('Crear Tutoría'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+          // Fecha
+          Row(
+            children: [
+              const Text('Fecha: '),
+              TextButton(
+                onPressed: _pickDate,
+                child: Text(_selectedDate == null
+                    ? 'Seleccionar fecha'
+                    : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'),
               ),
             ],
           ),
-        ),
+
+          // Hora inicio
+          Row(
+            children: [
+              const Text('Hora inicio: '),
+              TextButton(
+                onPressed: () => _pickTime(isStart: true),
+                child: Text(_startTime == null ? 'Seleccionar hora' : _startTime!.format(context)),
+              ),
+            ],
+          ),
+
+          // Hora fin
+          Row(
+            children: [
+              const Text('Hora fin: '),
+              TextButton(
+                onPressed: () => _pickTime(isStart: false),
+                child: Text(_endTime == null ? 'Seleccionar hora' : _endTime!.format(context)),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          ElevatedButton(
+            onPressed: _isSubmitting ? null : _submit,
+            child: _isSubmitting
+                ? const CircularProgressIndicator()
+                : const Text('Crear Tutoría'),
+          ),
+        ],
       ),
-    );
+    ),
+  ),
+);
+
+
+///
+///
   }
 }

@@ -58,6 +58,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: 8),
             Text('Nombre: ${user.fullname}'),
             const SizedBox(height: 8),
+            Text('fmcToken: ${user.fcmToken}'),
+            const SizedBox(height: 8),
             Text('Rol: ${user.role.getDisplayName()}'),
             const SizedBox(height: 8),
             Text('Creado en: ${user.createdAt}'),

@@ -67,7 +67,6 @@ class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
 
     final attendanceNotifier = ref.read(tutoringAttendanceProvider.notifier);
     final attendances = ref.read(tutoringAttendanceProvider);
-
     final existingAttendance = _findAttendance(attendances);
 
     if (existingAttendance != null) {
@@ -81,7 +80,7 @@ class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
       await attendanceNotifier.updateAttendance(updatedAttendance);
     } else {
       final newAttendance = TutoringAttendance(
-        id: '', // Firestore asignará el id
+        id: '',
         date: DateTime.now(),
         status: newStatus,
         studentId: widget.request.studentId,
@@ -91,107 +90,116 @@ class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
     }
   }
 
-@override
-Widget build(BuildContext context) {
-  final attendances = ref.watch(tutoringAttendanceProvider);
-  final attendance = _findAttendance(attendances);
+  Widget buildAttendanceWidget(bool isTeacher) {
+    if (widget.request.status != TutoringRequestStatus.accepted) {
+      return const Text(
+        'Asistencia: No disponible - estado no aceptado',
+        style: TextStyle(fontSize: 16, color: Colors.grey),
+      );
+    }
 
-  // Actualiza _selectedStatus si el provider cambió
-  if (_selectedStatus != attendance?.status) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() {
-          _selectedStatus = attendance?.status;
-        });
-      }
-    });
+    if (isTeacher) {
+      return Row(
+        children: [
+          const Text(
+            'Asistencia: ',
+            style: TextStyle(fontSize: 14),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: DropdownButton<AttendanceStatus?>(
+              isExpanded: true,
+              value: _selectedStatus,
+              items: [
+                const DropdownMenuItem<AttendanceStatus?>(
+                  value: null,
+                  child: Text('Seleccione...'),
+                ),
+                ...AttendanceStatus.values.map((status) {
+                  return DropdownMenuItem(
+                    value: status,
+                    child: Text(
+                      TutoringAttendance.statusToStringSpanish(status),
+                    ),
+                  );
+                }).toList(),
+              ],
+              onChanged: (newStatus) {
+                if (newStatus != null) {
+                  _onStatusChanged(newStatus);
+                }
+              },
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Text(
+        'Asistencia: ${_selectedStatus != null ? TutoringAttendance.statusToStringSpanish(_selectedStatus!) : "No registrada"}',
+        style: const TextStyle(fontSize: 14),
+      );
+    }
   }
 
-  final firebaseUserAsync = ref.watch(currentUserProvider);
+  @override
+  Widget build(BuildContext context) {
+    final attendances = ref.watch(tutoringAttendanceProvider);
+    final attendance = _findAttendance(attendances);
 
-  return firebaseUserAsync.when(
-    data: (currentUserModel) {
-      final users = ref.watch(userProvider);
+    if (_selectedStatus != attendance?.status) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _selectedStatus = attendance?.status;
+          });
+        }
+      });
+    }
 
-      // currentUserModel ya es tu modelo User? directamente
-      final isTeacher = currentUserModel?.role == UserRole.teacher;
+    final firebaseUserAsync = ref.watch(currentUserProvider);
 
-      User? student;
-      try {
-        student = users.firstWhere((u) => u.id == widget.request.studentId);
-      } catch (e) {
-        student = null;
-      }
+    return firebaseUserAsync.when(
+      data: (currentUserModel) {
+        final users = ref.watch(userProvider);
+        final isTeacher = currentUserModel?.role == UserRole.teacher;
 
-      return Card(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                student != null ? student.fullname : 'Estudiante desconocido',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Estado solicitud: ${TutoringRequestUtils.statusToSpanish(widget.request.status)}',
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 4),
+        print('DEBUG: Usuario actual: ${currentUserModel?.fullname}');
+        print('DEBUG: Rol: ${currentUserModel?.role}');
+        print('DEBUG: ¿Es docente?: $isTeacher');
+        print('DEBUG: Estado de la solicitud: ${widget.request.status}');
 
-              // Mostrar asistencia solo si solicitud está aceptada
-              if (widget.request.status == TutoringRequestStatus.accepted)
-                isTeacher
-                    ? Row(
-                        children: [
-                          const Text(
-                            'Asistencia: ',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                          DropdownButton<AttendanceStatus?>(
-                            value: _selectedStatus,
-                            items: [
-                              const DropdownMenuItem<AttendanceStatus?>(
-                                value: null,
-                                child: Text('Seleccione...'),
-                              ),
-                              ...AttendanceStatus.values.map((status) {
-                                return DropdownMenuItem(
-                                  value: status,
-                                  child: Text(
-                                    TutoringAttendance.statusToStringSpanish(status),
-                                  ),
-                                );
-                              }).toList(),
-                            ],
-                            onChanged: (newStatus) {
-                              if (newStatus != null) {
-                                _onStatusChanged(newStatus);
-                              }
-                            },
-                          ),
-                        ],
-                      )
-                    : Text(
-                        'Asistencia: ${_selectedStatus != null ? TutoringAttendance.statusToStringSpanish(_selectedStatus!) : "No registrada"}',
-                        style: const TextStyle(fontSize: 14),
-                      )
-              else
-                const Text(
-                  'Asistencia: No disponible - estado no aceptado',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+        User? student;
+        try {
+          student = users.firstWhere((u) => u.id == widget.request.studentId);
+        } catch (e) {
+          student = null;
+        }
+
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  student != null ? student.fullname : 'Estudiante desconocido',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  'Estado solicitud: ${TutoringRequestUtils.statusToSpanish(widget.request.status)}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                buildAttendanceWidget(isTeacher),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-    loading: () => const Center(child: CircularProgressIndicator()),
-    error: (error, _) => Center(child: Text('Error: $error')),
-  );
-}
-
-
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(child: Text('Error: $error')),
+    );
+  }
 }

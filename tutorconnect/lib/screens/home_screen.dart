@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tutorconnect/routes/app_routes.dart';
 import 'package:tutorconnect/providers/auth_provider.dart';
 import 'package:tutorconnect/providers/user_provider.dart';
+import 'package:tutorconnect/utils/helpers/student_helper.dart';
 import 'package:tutorconnect/widgets/notifications_widget.dart';
 import 'package:tutorconnect/widgets/tutoring_widget.dart';
 import 'package:tutorconnect/widgets/subjects_widget.dart';
@@ -30,12 +31,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           );
         }
 
-        final List<Widget> pages = <Widget>[
+        final bool isStudent = customUser.role == UserRole.student;
+
+        // Definir listas dinámicas según rol
+        final List<Widget> pages = [
           const TutoringWidget(),
-          const NotificationsWidget(),
+          if (isStudent) const NotificationsWidget(),
           const SubjectsWidget(),
-          const ScheduleWidget(),  // <-- Agregado el widget de horarios aquí
+          const ScheduleWidget(),
         ];
+
+        final List<BottomNavigationBarItem> navItems = [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.school),
+            label: 'Tutorías',
+          ),
+          if (isStudent)
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.notifications),
+              label: 'Notificaciones',
+            ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.class_),
+            label: 'Clases',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.schedule),
+            label: 'Horarios',
+          ),
+        ];
+
+        // Ajustar _selectedIndex si fuera necesario para evitar desbordes
+        if (_selectedIndex >= pages.length) {
+          _selectedIndex = 0;
+        }
 
         return Scaffold(
           appBar: AppBar(
@@ -67,24 +96,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 _selectedIndex = index;
               });
             },
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.school),
-                label: 'Tutorías',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.notifications),
-                label: 'Notificaciones',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.class_),
-                label: 'Clases',
-              ),
-              BottomNavigationBarItem(      // <-- Item añadido para horarios
-                icon: Icon(Icons.schedule),
-                label: 'Horarios',
-              ),
-            ],
+            items: navItems,
           ),
         );
       },
@@ -97,3 +109,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 }
+

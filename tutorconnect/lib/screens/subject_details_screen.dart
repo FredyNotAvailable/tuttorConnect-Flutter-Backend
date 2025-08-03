@@ -7,6 +7,9 @@ import 'package:tutorconnect/providers/class_schedule_provider.dart';
 import 'package:tutorconnect/providers/teacher_plan_provider.dart';
 import 'package:tutorconnect/providers/tutoring_provider.dart';
 import 'package:tutorconnect/providers/user_provider.dart';
+import 'package:tutorconnect/providers/tutoring_request_provider.dart';
+import 'package:tutorconnect/models/tutoring_request.dart';
+import 'package:tutorconnect/utils/helpers/student_helper.dart';
 import 'package:tutorconnect/widgets/tutoring_card.dart';
 
 class SubjectDetailsScreen extends ConsumerStatefulWidget {
@@ -22,10 +25,10 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // Forzar recarga al entrar a la pantalla (una sola vez)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(classSchedulesBySubjectProvider(widget.subject.id));
       ref.refresh(tutoringsBySubjectProvider(widget.subject.id));
+      ref.read(tutoringRequestProvider.notifier).loadTutoringRequests();
     });
   }
 
@@ -34,6 +37,8 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
     final subject = widget.subject;
     final schedulesAsync = ref.watch(classSchedulesBySubjectProvider(subject.id));
     final tutoringsAsync = ref.watch(tutoringsBySubjectProvider(subject.id));
+    final currentUserAsync = ref.watch(currentUserProvider);
+    final tutoringRequests = ref.watch(tutoringRequestProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -81,23 +86,54 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
             const SizedBox(height: 24),
             const Text('Tutorías relacionadas:'),
             const SizedBox(height: 8),
-            tutoringsAsync.when(
-              data: (tutorings) {
-                if (tutorings.isEmpty) {
-                  return const Text('No hay tutorías relacionadas');
+            currentUserAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Text('Error: $e'),
+              data: (currentUser) {
+                if (currentUser == null) {
+                  return const Text('No estás autenticado.');
                 }
-                return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: tutorings.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    return TutoringCard(tutoring: tutorings[index]);
+
+                final userRole = currentUser.role;
+
+                return tutoringsAsync.when(
+                  data: (tutorings) {
+                    List<Tutoring> filteredTutorings;
+
+                    if (userRole == UserRole.student) {
+                      final acceptedRequests = tutoringRequests.where((req) =>
+                          req.studentId == currentUser.id &&
+                          req.status == TutoringRequestStatus.accepted).toList();
+
+                      final acceptedTutoringIds = acceptedRequests.map((r) => r.tutoringId).toSet();
+
+                      filteredTutorings = tutorings.where((t) => acceptedTutoringIds.contains(t.id)).toList();
+
+                      if (filteredTutorings.isEmpty) {
+                        return const Text('No tienes tutorías aceptadas para esta materia.');
+                      }
+                    } else {
+                      // Docente: ver todas las tutorías
+                      filteredTutorings = tutorings;
+                      if (filteredTutorings.isEmpty) {
+                        return const Text('No hay tutorías registradas para esta materia.');
+                      }
+                    }
+
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filteredTutorings.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        return TutoringCard(tutoring: filteredTutorings[index]);
+                      },
+                    );
                   },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, _) => Text('Error cargando tutorías: $error'),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Text('Error cargando tutorías: $error'),
             ),
           ],
         ),

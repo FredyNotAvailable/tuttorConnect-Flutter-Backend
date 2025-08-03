@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tutorconnect/models/subject.dart';
 
 import 'package:tutorconnect/models/tutoring_request.dart';
+import 'package:tutorconnect/models/tutoring.dart';
+import 'package:tutorconnect/models/user.dart';
 
 import 'package:tutorconnect/providers/tutoring_request_provider.dart';
 import 'package:tutorconnect/providers/user_provider.dart';
@@ -57,21 +60,51 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
           itemBuilder: (context, index) {
             final request = myRequests[index];
 
-            final tutoring = allTutorings.firstWhere(
-              (t) => t.id == request.tutoringId,
-            );
+            Tutoring? tutoring;
+            try {
+              tutoring = allTutorings.firstWhere((t) => t.id == request.tutoringId);
+            } catch (e) {
+              tutoring = null;
+            }
 
-            final teacher = allUsers.firstWhere(
-              (u) => u.id == tutoring.teacherId,
-            );
+            if (tutoring == null) {
+              return ListTile(title: Text('Tutoría no encontrada'));
+            }
 
-            final subject = allSubjects.firstWhere(
-              (s) => s.id == tutoring.subjectId,
-            );
+            // Acceder a las propiedades de tutoring de forma segura
+            final teacherId = tutoring?.teacherId;
+            final subjectId = tutoring?.subjectId;
 
+            User? teacher;
+            if (teacherId != null) {
+              try {
+                teacher = allUsers.firstWhere((u) => u.id == teacherId);
+              } catch (e) {
+                teacher = null;
+              }
+            }
+
+            if (teacher == null) {
+              return ListTile(title: Text('Docente no encontrado'));
+            }
+
+            Subject? subject;
+            if (subjectId != null) {
+              try {
+                subject = allSubjects.firstWhere((s) => s.id == subjectId);
+              } catch (e) {
+                subject = null;
+              }
+            }
+
+            if (subject == null) {
+              return ListTile(title: Text('Materia no encontrada'));
+            }
+
+
+            // El resto igual...
             final timeAgo = _formatTimeAgo(request.sentAt);
 
-            // Determinar si la solicitud está pendiente para mostrar botones
             final isPending = request.status == TutoringRequestStatus.pending;
 
             return Card(
@@ -95,7 +128,6 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Mostrar estado si no está pendiente
                     if (!isPending) ...[
                       Text(
                         'Estado: ${_statusText(request.status)}',
@@ -113,7 +145,7 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton(
-                            onPressed: isPending ? () async {
+                            onPressed: () async {
                               final updatedRequest = request.copyWith(
                                 status: TutoringRequestStatus.rejected,
                                 responseAt: DateTime.now(),
@@ -124,12 +156,11 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
                                   const SnackBar(content: Text('Solicitud rechazada')),
                                 );
                               }
-                            } : null,
+                            },
                             child: const Text('Rechazar'),
                           ),
-
                           ElevatedButton(
-                            onPressed: isPending ? () async {
+                            onPressed: () async {
                               final updatedRequest = request.copyWith(
                                 status: TutoringRequestStatus.accepted,
                                 responseAt: DateTime.now(),
@@ -140,10 +171,9 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
                                   const SnackBar(content: Text('Solicitud aceptada')),
                                 );
                               }
-                            } : null,
+                            },
                             child: const Text('Aceptar'),
                           ),
-
                         ],
                       ),
                   ],
@@ -152,6 +182,7 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
             );
           },
         );
+
       },
     );
   }

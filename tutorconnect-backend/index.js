@@ -8,11 +8,19 @@ const fs = require("fs");
 // Agregamos polyfill de fetch y Headers con node-fetch
 const fetch = require("node-fetch");
 
+// Agregamos polyfill para Blob (si es necesario)
+const { Blob } = require("fetch-blob");
+
 if (!globalThis.fetch) {
   globalThis.fetch = fetch;
   globalThis.Headers = fetch.Headers;
   globalThis.Request = fetch.Request;
   globalThis.Response = fetch.Response;
+}
+
+// Si Blob no está definido, lo agregamos
+if (!globalThis.Blob) {
+  globalThis.Blob = Blob;
 }
 
 const SERVICE_ACCOUNT_JSON = process.env.SERVICE_ACCOUNT_JSON;

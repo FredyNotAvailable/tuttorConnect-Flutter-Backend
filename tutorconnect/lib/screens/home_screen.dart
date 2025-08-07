@@ -55,10 +55,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             icon: Icon(Icons.class_),
             label: 'Clases',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.schedule),
-            label: 'Horarios',
-          ),
+          // const BottomNavigationBarItem(
+          //   icon: Icon(Icons.schedule),
+          //   label: 'Horarios',
+          // ),
         ];
 
         // Ajustar _selectedIndex si fuera necesario para evitar desbordes

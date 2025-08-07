@@ -7,7 +7,6 @@ import 'package:tutorconnect/routes/app_routes.dart';
 import 'package:tutorconnect/firebase/firebase_initializer.dart';
 import 'package:tutorconnect/firebase/firebase_providers.dart';
 import 'package:tutorconnect/screens/auth_gate.dart'; // <-- Importa el nuevo widget
-import 'package:tutorconnect/screens/register_screen.dart'; // <-- ¡ESTA ES LA IMPORTACIÓN QUE FALTABA!
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 

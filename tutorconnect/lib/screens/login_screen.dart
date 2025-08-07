@@ -80,8 +80,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   _buildForgotPasswordButton(),
                   const SizedBox(height: 30),
                   _buildLoginButton(),
-                  const SizedBox(height: 30),
-                  _buildCreateAccountButton(),
                 ],
               ),
             ),
@@ -245,25 +243,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   "Login",
                   style: TextStyle(color: Colors.white),
                 ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCreateAccountButton() {
-    return FadeInUp(
-      duration: const Duration(milliseconds: 2000),
-      child: Center(
-        child: TextButton(
-          onPressed: () {
-            Navigator.of(context).pushNamed(AppRoutes.register);
-          },
-          child: const Text(
-            "Crear Cuenta",
-            style: TextStyle(
-              color: Color.fromRGBO(49, 39, 79, .6),
-            ),
-          ),
         ),
       ),
     );

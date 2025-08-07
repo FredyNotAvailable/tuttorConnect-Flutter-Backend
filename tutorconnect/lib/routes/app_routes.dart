@@ -19,7 +19,7 @@ class AppRoutes {
   static const tutoring = '/tutoring';
   static const createTutoring = '/create-tutoring';
   static const subjectDetails = '/subjectDetails';
-
+  static const register = '/register';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -38,8 +38,10 @@ class AppRoutes {
             ),
           );
         } else {
-          return MaterialPageRoute(builder: (_) => ProfileScreen(user: user,)
-          );
+          return MaterialPageRoute(
+              builder: (_) => ProfileScreen(
+                    user: user,
+                  ));
         }
       // Tutoring
       case tutoring:
@@ -56,12 +58,12 @@ class AppRoutes {
           );
         }
       // Subjects
-            case subjectDetails:
+      case subjectDetails:
         final subject = settings.arguments as Subject;
         return MaterialPageRoute(
           builder: (_) => SubjectDetailsScreen(subject: subject),
         );
-      
+
       case createTutoring:
         return MaterialPageRoute(builder: (_) => const CrearTutoriaScreen());
 

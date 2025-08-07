@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_messaging/firebase_messaging.dart'; // Asegúrate de importar esto
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tutorconnect/firebase/push_notification_service.dart';
-import 'routes/app_routes.dart';
-import 'firebase/firebase_initializer.dart';
-import 'firebase/firebase_providers.dart';
-import 'screens/auth_gate.dart';  // <-- Importa el nuevo widget
+import 'package:tutorconnect/routes/app_routes.dart';
+import 'package:tutorconnect/firebase/firebase_initializer.dart';
+import 'package:tutorconnect/firebase/firebase_providers.dart';
+import 'package:tutorconnect/screens/auth_gate.dart'; // <-- Importa el nuevo widget
+import 'package:tutorconnect/screens/register_screen.dart'; // <-- ¡ESTA ES LA IMPORTACIÓN QUE FALTABA!
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -15,7 +17,8 @@ void main() async {
   final connected = await initializeFirebaseAndMessaging();
 
   if (connected) {
-    await PushNotificationService.initialize(); // Inicializa notificaciones push
+    await PushNotificationService
+        .initialize(); // Inicializa notificaciones push
   }
 
   runApp(
@@ -65,34 +68,41 @@ class _MyAppState extends ConsumerState<MyApp> {
             ),
           );
         }
-        return MaterialApp(
-          navigatorKey: navigatorKey,
-          title: 'TutorConnect',
-          debugShowCheckedModeBanner: false,
-          home: const AuthGate(),
-          onGenerateRoute: AppRoutes.generateRoute,
-          theme: ThemeData(
-            brightness: Brightness.light,
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-              iconTheme: IconThemeData(color: Colors.black),
-              titleTextStyle: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+        return ScreenUtilInit(
+          designSize: const Size(360, 690),
+          minTextAdapt: true,
+          splitScreenMode: true,
+          builder: (context, child) {
+            return MaterialApp(
+              navigatorKey: navigatorKey,
+              title: 'TutorConnect',
+              debugShowCheckedModeBanner: false,
+              home: const AuthGate(),
+              onGenerateRoute: AppRoutes.generateRoute,
+              theme: ThemeData(
+                brightness: Brightness.light,
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  iconTheme: IconThemeData(color: Colors.black),
+                  titleTextStyle: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  actionsIconTheme: IconThemeData(color: Colors.black),
+                  elevation: 1,
+                ),
+                bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+                  selectedItemColor: Colors.blue,
+                  unselectedItemColor: Colors.grey,
+                ),
+                textTheme: const TextTheme(
+                  bodyMedium: TextStyle(color: Colors.black),
+                ),
               ),
-              actionsIconTheme: IconThemeData(color: Colors.black),
-              elevation: 1,
-            ),
-            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-              selectedItemColor: Colors.blue,
-              unselectedItemColor: Colors.grey,
-            ),
-            textTheme: const TextTheme(
-              bodyMedium: TextStyle(color: Colors.black),
-            ),
-          ),
+            );
+          },
         );
       },
       loading: () => const MaterialApp(

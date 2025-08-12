@@ -16,10 +16,14 @@ class TutoringRequestCard extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<TutoringRequestCard> createState() => _TutoringRequestCardState();
+  ConsumerState<TutoringRequestCard> createState() =>
+      _TutoringRequestCardState();
 }
 
 class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
+  static const primaryColor = Color.fromRGBO(49, 39, 79, 1);
+  static const accentColor = Color.fromRGBO(196, 135, 198, 1);
+
   AttendanceStatus? _selectedStatus;
 
   @override
@@ -94,7 +98,7 @@ class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
     if (widget.request.status != TutoringRequestStatus.accepted) {
       return const Text(
         'Asistencia: No disponible - estado no aceptado',
-        style: TextStyle(fontSize: 16, color: Colors.grey),
+        style: TextStyle(fontSize: 14, color: Colors.grey),
       );
     }
 
@@ -103,9 +107,10 @@ class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
         children: [
           const Text(
             'Asistencia: ',
-            style: TextStyle(fontSize: 14),
+            style: TextStyle(
+                fontSize: 14, fontWeight: FontWeight.bold, color: primaryColor),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Expanded(
             child: DropdownButton<AttendanceStatus?>(
               isExpanded: true,
@@ -120,6 +125,7 @@ class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
                     value: status,
                     child: Text(
                       TutoringAttendance.statusToStringSpanish(status),
+                      style: const TextStyle(color: primaryColor),
                     ),
                   );
                 }).toList(),
@@ -129,6 +135,11 @@ class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
                   _onStatusChanged(newStatus);
                 }
               },
+              dropdownColor: Colors.white,
+              underline: Container(
+                height: 1,
+                color: accentColor.withOpacity(0.7),
+              ),
             ),
           ),
         ],
@@ -136,7 +147,7 @@ class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
     } else {
       return Text(
         'Asistencia: ${_selectedStatus != null ? TutoringAttendance.statusToStringSpanish(_selectedStatus!) : "No registrada"}',
-        style: const TextStyle(fontSize: 14),
+        style: const TextStyle(fontSize: 14, color: Colors.black87),
       );
     }
   }
@@ -163,11 +174,6 @@ class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
         final users = ref.watch(userProvider);
         final isTeacher = currentUserModel?.role == UserRole.teacher;
 
-        print('DEBUG: Usuario actual: ${currentUserModel?.fullname}');
-        print('DEBUG: Rol: ${currentUserModel?.role}');
-        print('DEBUG: ¿Es docente?: $isTeacher');
-        print('DEBUG: Estado de la solicitud: ${widget.request.status}');
-
         User? student;
         try {
           student = users.firstWhere((u) => u.id == widget.request.studentId);
@@ -176,22 +182,34 @@ class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
         }
 
         return Card(
-          margin: const EdgeInsets.symmetric(vertical: 6),
+          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 4,
+          shadowColor: accentColor.withOpacity(0.3),
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   student != null ? student.fullname : 'Estudiante desconocido',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: primaryColor,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Estado solicitud: ${TutoringRequestUtils.statusToSpanish(widget.request.status)}',
-                  style: const TextStyle(fontSize: 14),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: primaryColor.withOpacity(0.8),
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 12),
                 buildAttendanceWidget(isTeacher),
               ],
             ),
@@ -199,7 +217,12 @@ class _TutoringRequestCardState extends ConsumerState<TutoringRequestCard> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      error: (error, _) => Center(
+        child: Text(
+          'Error: $error',
+          style: const TextStyle(color: Colors.redAccent),
+        ),
+      ),
     );
   }
 }

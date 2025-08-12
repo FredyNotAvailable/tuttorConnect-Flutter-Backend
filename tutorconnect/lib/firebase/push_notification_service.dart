@@ -4,64 +4,68 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 /// Handler para mensajes recibidos en background o cuando la app está terminada
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('📥 Mensaje recibido en background: ${message.messageId}');
-  // Aquí puedes hacer tareas en background, actualizar datos, etc.
+  // Aquí puedes realizar tareas en background, actualizar datos, etc.
 }
 
 class PushNotificationService {
-  static final _firebaseMessaging = FirebaseMessaging.instance;
+  static final FirebaseMessaging _firebaseMessaging =
+      FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   static Function(RemoteMessage)? _onMessageCallback;
 
-  /// Llamar desde main() al iniciar la app
+  /// Inicializa la configuración de Firebase Messaging y notificaciones locales
+  /// Debe llamarse desde main() al iniciar la app
   static Future<void> initialize() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
+    const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    final InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-    );
+    const initializationSettings =
+        InitializationSettings(android: androidSettings);
 
     await _localNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         // Acción al tocar la notificación local
-        print('Notificación local seleccionada con payload: ${response.payload}');
-        // Aquí puedes navegar o realizar alguna acción
+        print(
+            'Notificación local seleccionada con payload: ${response.payload}');
+        // Aquí puedes navegar o realizar alguna acción adicional
       },
     );
-    // Registra el handler para mensajes en background (importante)
+
+    // Registrar handler para mensajes en background (importante)
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    // Solicita permisos en iOS (Android los concede por defecto)
+    // Solicitar permisos para iOS (en Android no es necesario)
     await _firebaseMessaging.requestPermission();
 
-    // Maneja mensajes cuando la app está en segundo plano y el usuario abre la notificación
+    // Maneja cuando el usuario abre la app desde una notificación en segundo plano
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
 
-    // Maneja mensajes en primer plano
+    // Maneja mensajes recibidos en primer plano
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print('🔔 Mensaje en primer plano: ${message.notification?.title}');
-      _showLocalNotification(message); // Muestra notificación local en foreground
+      _showLocalNotification(
+          message); // Mostrar notificación local en foreground
       if (_onMessageCallback != null) {
         _onMessageCallback!(message);
       }
     });
 
-    // Opcional: si la app fue abierta desde una notificación estando terminada
-    RemoteMessage? initialMessage = await _firebaseMessaging.getInitialMessage();
+    // Si la app fue abierta desde una notificación estando terminada
+    RemoteMessage? initialMessage =
+        await _firebaseMessaging.getInitialMessage();
     if (initialMessage != null) {
       _handleMessageOpenedApp(initialMessage);
     }
   }
 
-  /// Muestra una notificación local cuando la app está en foreground
+  /// Muestra una notificación local cuando la app está en primer plano
   static Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
 
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    const androidDetails = AndroidNotificationDetails(
       'default_channel_id',
       'Default Channel',
       channelDescription: 'Canal para notificaciones de TutorConnect',
@@ -70,7 +74,7 @@ class PushNotificationService {
       ticker: 'ticker',
     );
 
-    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
+    const platformDetails = NotificationDetails(android: androidDetails);
 
     await _localNotificationsPlugin.show(
       notification.hashCode,
@@ -81,16 +85,19 @@ class PushNotificationService {
     );
   }
 
-  /// Registra un callback para mensajes en primer plano
+  /// Registra un callback para recibir mensajes en primer plano
   static void onMessageListener(Function(RemoteMessage) callback) {
     _onMessageCallback = callback;
   }
 
+  /// Maneja cuando el usuario abre la app desde una notificación
   static void _handleMessageOpenedApp(RemoteMessage message) {
-    print('📲 Usuario abrió la app desde la notificación: ${message.notification?.title}');
-    // Aquí puedes navegar o actualizar UI según el payload
+    print(
+        '📲 Usuario abrió la app desde la notificación: ${message.notification?.title}');
+    // Aquí puedes navegar o actualizar la UI según el payload
   }
 
+  /// Obtiene el token FCM para notificaciones push
   static Future<String?> getFcmToken() async {
     return await _firebaseMessaging.getToken();
   }

@@ -20,6 +20,9 @@ class TutoringWidget extends ConsumerStatefulWidget {
 }
 
 class _TutoringWidgetState extends ConsumerState<TutoringWidget> {
+  static const primaryColor = Color.fromRGBO(49, 39, 79, 1);
+  static const accentColor = Color.fromRGBO(196, 135, 198, 1);
+
   bool _loading = true;
   String? _error;
   UserRole? _currentUserRole;
@@ -55,11 +58,15 @@ class _TutoringWidgetState extends ConsumerState<TutoringWidget> {
       if (user.role == UserRole.teacher) {
         await tutoringNotifier.loadTutoringsByTeacherId(user.id);
       } else if (user.role == UserRole.student) {
-        final tutoringRequestNotifier = ref.read(tutoringRequestProvider.notifier);
-        _studentTutoringRequests = await tutoringRequestNotifier.getTutoringRequestsByStudentId(user.id);
+        final tutoringRequestNotifier =
+            ref.read(tutoringRequestProvider.notifier);
+        _studentTutoringRequests = await tutoringRequestNotifier
+            .getTutoringRequestsByStudentId(user.id);
 
-        final tutoringRequestIds = _studentTutoringRequests.map((r) => r.id).toList();
-        await tutoringNotifier.loadTutoringsByTutoringRequestIds(tutoringRequestIds);
+        final tutoringRequestIds =
+            _studentTutoringRequests.map((r) => r.id).toList();
+        await tutoringNotifier
+            .loadTutoringsByTutoringRequestIds(tutoringRequestIds);
       } else {
         setState(() {
           _error = 'Rol de usuario no válido.';
@@ -79,76 +86,96 @@ class _TutoringWidgetState extends ConsumerState<TutoringWidget> {
     }
   }
 
-@override
-Widget build(BuildContext context) {
-  final tutorings = ref.watch(tutoringProvider);
-  final subjects = ref.watch(subjectProvider);
+  @override
+  Widget build(BuildContext context) {
+    final tutorings = ref.watch(tutoringProvider);
+    final subjects = ref.watch(subjectProvider);
 
-  // Filtrar tutorías para estudiantes según solicitudes aceptadas
-  List<Tutoring> filteredTutorings = tutorings;
-  if (_currentUserRole == UserRole.student) {
-    final acceptedTutoringIds = _studentTutoringRequests
-        .where((req) => req.status == TutoringRequestStatus.accepted)
-        .map((req) => req.tutoringId)
-        .toSet();
+    // Filtrar tutorías para estudiantes según solicitudes aceptadas
+    List<Tutoring> filteredTutorings = tutorings;
+    if (_currentUserRole == UserRole.student) {
+      final acceptedTutoringIds = _studentTutoringRequests
+          .where((req) => req.status == TutoringRequestStatus.accepted)
+          .map((req) => req.tutoringId)
+          .toSet();
 
-    filteredTutorings = tutorings.where((t) => acceptedTutoringIds.contains(t.id)).toList();
-  }
+      filteredTutorings =
+          tutorings.where((t) => acceptedTutoringIds.contains(t.id)).toList();
+    }
 
-  // Agrupar tutorías por subjectId
-  final Map<String, List<Tutoring>> tutoringsBySubject = {};
-  for (var t in filteredTutorings) {
-    tutoringsBySubject.putIfAbsent(t.subjectId, () => []).add(t);
-  }
+    // Agrupar tutorías por subjectId
+    final Map<String, List<Tutoring>> tutoringsBySubject = {};
+    for (var t in filteredTutorings) {
+      tutoringsBySubject.putIfAbsent(t.subjectId, () => []).add(t);
+    }
 
-  return Scaffold(
-    body: _loading
-        ? const Center(child: CircularProgressIndicator())
-        : _error != null
-            ? Center(child: Text(_error!))
-            : tutoringsBySubject.isEmpty
-                ? const Center(child: Text('No hay tutorías disponibles.'))
-                : ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: tutoringsBySubject.entries.expand((entry) {
-                      final subjectId = entry.key;
-                      final subjectTutorings = entry.value;
-                      Subject? subject;
-                      try {
-                        subject = subjects.firstWhere((s) => s.id == subjectId);
-                      } catch (e) {
-                        subject = null;
-                      }
-
-                      return [
-                        Text(
-                          subject?.name ?? 'Materia desconocida',
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        ...subjectTutorings.map((tutoring) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: TutoringCard(tutoring: tutoring),
-                            )),
-                        const SizedBox(height: 24),
-                      ];
-                    }).toList(),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      // AppBar eliminado para no mostrar la línea morada superior
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(
+                  child: Text(
+                    _error!,
+                    style:
+                        const TextStyle(color: Colors.redAccent, fontSize: 16),
+                    textAlign: TextAlign.center,
                   ),
-    floatingActionButton: (_currentUserRole == UserRole.teacher)
-        ? FloatingActionButton(
-            onPressed: () async {
-              await Navigator.pushNamed(context, AppRoutes.createTutoring);
-              setState(() {
-                _loading = true;
-              });
-              _loadData();
-            },
-            tooltip: 'Crear tutoría',
-            child: const Icon(Icons.add),
-          )
-        : null,
-  );
-}
+                )
+              : tutoringsBySubject.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No hay tutorías disponibles.',
+                        style: TextStyle(
+                            color: primaryColor.withOpacity(0.7), fontSize: 16),
+                      ),
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: tutoringsBySubject.entries.expand((entry) {
+                        final subjectId = entry.key;
+                        final subjectTutorings = entry.value;
+                        Subject? subject;
+                        try {
+                          subject =
+                              subjects.firstWhere((s) => s.id == subjectId);
+                        } catch (e) {
+                          subject = null;
+                        }
 
-
+                        return [
+                          Text(
+                            subject?.name ?? 'Materia desconocida',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ...subjectTutorings.map((tutoring) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: TutoringCard(tutoring: tutoring),
+                              )),
+                          const SizedBox(height: 24),
+                        ];
+                      }).toList(),
+                    ),
+      floatingActionButton: (_currentUserRole == UserRole.teacher)
+          ? FloatingActionButton(
+              backgroundColor: accentColor,
+              onPressed: () async {
+                await Navigator.pushNamed(context, AppRoutes.createTutoring);
+                setState(() {
+                  _loading = true;
+                });
+                _loadData();
+              },
+              tooltip: 'Crear tutoría',
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
+    );
+  }
 }

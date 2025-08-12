@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tutorconnect/models/subject.dart';
 
+import 'package:tutorconnect/models/subject.dart';
 import 'package:tutorconnect/models/tutoring_request.dart';
 import 'package:tutorconnect/models/tutoring.dart';
 import 'package:tutorconnect/models/user.dart';
@@ -15,7 +15,8 @@ class NotificationsWidget extends ConsumerStatefulWidget {
   const NotificationsWidget({super.key});
 
   @override
-  ConsumerState<NotificationsWidget> createState() => _NotificationsWidgetState();
+  ConsumerState<NotificationsWidget> createState() =>
+      _NotificationsWidgetState();
 }
 
 class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
@@ -62,18 +63,18 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
 
             Tutoring? tutoring;
             try {
-              tutoring = allTutorings.firstWhere((t) => t.id == request.tutoringId);
+              tutoring =
+                  allTutorings.firstWhere((t) => t.id == request.tutoringId);
             } catch (e) {
               tutoring = null;
             }
 
             if (tutoring == null) {
-              return ListTile(title: Text('Tutoría no encontrada'));
+              return const ListTile(title: Text('Tutoría no encontrada'));
             }
 
-            // Acceder a las propiedades de tutoring de forma segura
-            final teacherId = tutoring?.teacherId;
-            final subjectId = tutoring?.subjectId;
+            final teacherId = tutoring.teacherId;
+            final subjectId = tutoring.subjectId;
 
             User? teacher;
             if (teacherId != null) {
@@ -85,7 +86,7 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
             }
 
             if (teacher == null) {
-              return ListTile(title: Text('Docente no encontrado'));
+              return const ListTile(title: Text('Docente no encontrado'));
             }
 
             Subject? subject;
@@ -98,18 +99,16 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
             }
 
             if (subject == null) {
-              return ListTile(title: Text('Materia no encontrada'));
+              return const ListTile(title: Text('Materia no encontrada'));
             }
 
-
-            // El resto igual...
             final timeAgo = _formatTimeAgo(request.sentAt);
-
             final isPending = request.status == TutoringRequestStatus.pending;
 
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               elevation: 3,
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -119,7 +118,8 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
                     Text(
                       'El docente ${teacher.fullname} de la materia ${subject.name} '
                       'te ha invitado a la tutoría "${tutoring.topic}".',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -127,19 +127,18 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
                       style: TextStyle(color: Colors.grey[600], fontSize: 13),
                     ),
                     const SizedBox(height: 12),
-
                     if (!isPending) ...[
                       Text(
                         'Estado: ${_statusText(request.status)}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: request.status == TutoringRequestStatus.accepted
-                              ? Colors.green
-                              : Colors.red,
+                          color:
+                              request.status == TutoringRequestStatus.accepted
+                                  ? Colors.green
+                                  : Colors.red,
                         ),
                       )
                     ],
-
                     if (isPending)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -150,10 +149,12 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
                                 status: TutoringRequestStatus.rejected,
                                 responseAt: DateTime.now(),
                               );
-                              await tutoringRequestNotifier.updateTutoringRequest(updatedRequest);
+                              await tutoringRequestNotifier
+                                  .updateTutoringRequest(updatedRequest);
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Solicitud rechazada')),
+                                  const SnackBar(
+                                      content: Text('Solicitud rechazada')),
                                 );
                               }
                             },
@@ -165,10 +166,12 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
                                 status: TutoringRequestStatus.accepted,
                                 responseAt: DateTime.now(),
                               );
-                              await tutoringRequestNotifier.updateTutoringRequest(updatedRequest);
+                              await tutoringRequestNotifier
+                                  .updateTutoringRequest(updatedRequest);
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Solicitud aceptada')),
+                                  const SnackBar(
+                                      content: Text('Solicitud aceptada')),
                                 );
                               }
                             },
@@ -182,7 +185,6 @@ class _NotificationsWidgetState extends ConsumerState<NotificationsWidget> {
             );
           },
         );
-
       },
     );
   }

@@ -14,15 +14,26 @@ class AcademicInfoWidget extends ConsumerWidget {
     required this.userId,
   });
 
+  static const primaryColor = Color.fromRGBO(49, 39, 79, 1);
+  static const accentColor = Color.fromRGBO(196, 135, 198, 1);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final careers = ref.watch(careerProvider);
 
-    final filtered = enrollments.where((e) => e.studentId == userId && e.isActive);
-    final Enrollment? activeEnrollment = filtered.isNotEmpty ? filtered.first : null;
+    final filtered =
+        enrollments.where((e) => e.studentId == userId && e.isActive);
+    final Enrollment? activeEnrollment =
+        filtered.isNotEmpty ? filtered.first : null;
 
     if (activeEnrollment == null) {
-      return const Text('No se encontró matrícula activa.');
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Text(
+          'No se encontró matrícula activa.',
+          style: TextStyle(color: Colors.black54),
+        ),
+      );
     }
 
     // Buscar carrera por id
@@ -32,24 +43,69 @@ class AcademicInfoWidget extends ConsumerWidget {
             orElse: () => Career(
               id: '',
               name: 'Desconocida',
-              // completar con valores por defecto para los demás campos si los tiene
             ),
           )
         : null;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Información Académica',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        const SizedBox(height: 8),
-        Text('Carrera: ${career?.name ?? "Desconocida"}'),
-        Text('Ciclo: ${activeEnrollment.cycle}'),
-        Text('Estado: ${activeEnrollment.isActive ? "Activo" : "Inactivo"}'),
-        Text('Fecha de inscripción: ${activeEnrollment.createdAt}'),
-      ],
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentColor.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withOpacity(0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Información Académica',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: primaryColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow('Carrera', career?.name ?? "Desconocida"),
+          _buildInfoRow('Ciclo', '${activeEnrollment.cycle}'),
+          _buildInfoRow(
+              'Estado', activeEnrollment.isActive ? "Activo" : "Inactivo"),
+          _buildInfoRow(
+              'Fecha de inscripción', activeEnrollment.createdAt.toString()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "$label: ",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: primaryColor,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.black87),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

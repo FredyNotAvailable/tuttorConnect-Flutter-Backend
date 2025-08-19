@@ -5,7 +5,6 @@ import 'package:tutorconnect/routes/app_routes.dart';
 import 'package:tutorconnect/providers/auth_provider.dart';
 import 'package:tutorconnect/providers/user_provider.dart';
 import 'package:tutorconnect/models/user.dart';
-import 'package:tutorconnect/utils/helpers/student_helper.dart';
 
 import 'package:tutorconnect/widgets/notifications_widget.dart';
 import 'package:tutorconnect/widgets/tutoring_widget.dart';
@@ -44,6 +43,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
         final bool isStudent = customUser.role == UserRole.student;
 
+        // Listas de páginas y navItems optimizadas usando const donde se pueda
         final List<Widget> pages = [
           const TutoringWidget(),
           if (isStudent) const NotificationsWidget(),
@@ -71,9 +71,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ];
 
-        if (_selectedIndex >= pages.length) {
-          _selectedIndex = 0;
-        }
+        if (_selectedIndex >= pages.length) _selectedIndex = 0;
 
         return Scaffold(
           appBar: AppBar(
@@ -81,36 +79,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             title: const Text('TutorConnect'),
             automaticallyImplyLeading: false,
             actions: [
-              IconButton(
-                icon: const Icon(Icons.person),
-                tooltip: 'Perfil',
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    AppRoutes.profile,
-                    arguments: customUser,
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout),
-                tooltip: 'Cerrar sesión',
-                onPressed: () async {
-                  await ref.read(signOutProvider.future);
-                  Navigator.pushReplacementNamed(context, AppRoutes.login);
-                },
-              ),
+              _ProfileButton(user: customUser),
+              _LogoutButton(ref: ref),
             ],
           ),
-          body: pages[_selectedIndex],
+          // IndexedStack mantiene estado de las páginas y mejora FPS al cambiar tab
+          body: IndexedStack(
+            index: _selectedIndex,
+            children: pages,
+          ),
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: _selectedIndex,
             selectedItemColor: _accentColor,
             unselectedItemColor: _primaryColor.withOpacity(0.6),
             onTap: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
+              setState(() => _selectedIndex = index);
             },
             items: navItems,
             backgroundColor: Colors.white,
@@ -124,6 +107,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       error: (error, _) => Scaffold(
         body: Center(child: Text('Error: $error')),
       ),
+    );
+  }
+}
+
+/// Botón de perfil separado para evitar rebuilds innecesarios
+class _ProfileButton extends StatelessWidget {
+  final dynamic user;
+
+  const _ProfileButton({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.person),
+      tooltip: 'Perfil',
+      onPressed: () {
+        Navigator.pushNamed(
+          context,
+          AppRoutes.profile,
+          arguments: user,
+        );
+      },
+    );
+  }
+}
+
+/// Botón de logout separado para evitar rebuilds innecesarios
+class _LogoutButton extends StatelessWidget {
+  final WidgetRef ref;
+
+  const _LogoutButton({required this.ref});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.logout),
+      tooltip: 'Cerrar sesión',
+      onPressed: () async {
+        await ref.read(signOutProvider.future);
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
+      },
     );
   }
 }

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animate_do/animate_do.dart';
 
 import 'package:tutorconnect/utils/images.dart';
-
 import '../providers/auth_provider.dart';
 import '../routes/app_routes.dart';
 
@@ -19,6 +18,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isEmailLoginLoading = false;
 
+  /// Función para iniciar sesión con validación simple
   void _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,19 +67,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _buildHeader(context),
+            _buildHeader(context), // Header con animaciones optimizadas
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _buildTitle(),
+                  _buildTitle(), // Título de la app
                   const SizedBox(height: 30),
-                  _buildLoginForm(),
+                  _buildLoginForm(), // Formulario con TextFields optimizados
                   const SizedBox(height: 20),
-                  _buildForgotPasswordButton(),
+                  _buildForgotPasswordButton(), // Botón "Olvidaste tu contraseña"
                   const SizedBox(height: 30),
-                  _buildLoginButton(),
+                  _buildLoginButton(), // Botón de login con Consumer
                 ],
               ),
             ),
@@ -89,40 +89,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  /// Header con imágenes de fondo optimizadas usando Image.asset en lugar de BoxDecoration
   Widget _buildHeader(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     return SizedBox(
       height: 400,
       child: Stack(
         children: <Widget>[
-          Positioned(
+          // Imagen de fondo principal
+          Positioned.fill(
             top: -40,
-            height: 400,
-            width: width,
             child: FadeInUp(
               duration: const Duration(seconds: 1),
-              child: Container(
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(Images.background),
-                    fit: BoxFit.fill,
-                  ),
-                ),
+              child: Image.asset(
+                Images.background,
+                fit: BoxFit.cover,
               ),
             ),
           ),
-          Positioned(
-            height: 400,
-            width: width + 20,
+          // Imagen secundaria
+          Positioned.fill(
             child: FadeInUp(
               duration: const Duration(milliseconds: 1000),
-              child: Container(
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(Images.background2),
-                    fit: BoxFit.fill,
-                  ),
-                ),
+              child: Image.asset(
+                Images.background2,
+                fit: BoxFit.cover,
               ),
             ),
           ),
@@ -131,6 +121,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  /// Título con animación y const para evitar rebuilds
   Widget _buildTitle() {
     return FadeInUp(
       duration: const Duration(milliseconds: 1500),
@@ -145,6 +136,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  /// Formulario de login optimizado usando widgets stateless para los TextFields
   Widget _buildLoginForm() {
     return FadeInUp(
       duration: const Duration(milliseconds: 1700),
@@ -165,8 +157,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         child: Column(
           children: <Widget>[
-            _buildTextField(controller: _emailController, hintText: "Email"),
-            _buildTextField(
+            LoginTextField(controller: _emailController, hintText: "Email"),
+            LoginTextField(
               controller: _passwordController,
               hintText: "Password",
               obscureText: true,
@@ -177,34 +169,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hintText,
-    bool obscureText = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Color.fromRGBO(196, 135, 198, .3),
-          ),
-        ),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          hintText: hintText,
-          hintStyle: TextStyle(
-            color: Colors.grey.shade700,
-          ),
-        ),
-      ),
-    );
-  }
-
+  /// Botón "Olvidaste tu contraseña" con animación
   Widget _buildForgotPasswordButton() {
     return FadeInUp(
       duration: const Duration(milliseconds: 1700),
@@ -224,27 +189,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  /// Botón de login optimizado para reconstruir solo lo necesario usando Consumer
   Widget _buildLoginButton() {
     return FadeInUp(
       duration: const Duration(milliseconds: 1900),
-      child: MaterialButton(
-        onPressed: _isEmailLoginLoading ? null : _login,
-        color: const Color.fromRGBO(49, 39, 79, 1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(50),
-        ),
-        height: 50,
-        child: Center(
-          child: _isEmailLoginLoading
-              ? const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                )
-              : const Text(
-                  "Login",
-                  style: TextStyle(color: Colors.white),
-                ),
-        ),
-      ),
-    );
-  }
-}
+      child: Consumer(
+        builder: (context, ref, child) {
+          return MaterialButton(
+            onPressed: _isEmailLoginLoading ? null : _login,
+            color: const Color.fromRGBO(49, 39, 79, 1),
